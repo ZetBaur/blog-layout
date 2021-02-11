@@ -1,0 +1,3 @@
+tippy('.tippy', {
+	content: "Tooltip",
+});
