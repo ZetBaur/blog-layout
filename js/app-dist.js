@@ -1,6 +1,8 @@
 
 
 
+
+
  
 
 
@@ -11,39 +13,322 @@
 
 
 
-var ua = window.navigator.userAgent;
-var msie = ua.indexOf("MSIE ");
-var isMobile = { Android: function () { return navigator.userAgent.match(/Android/i); }, BlackBerry: function () { return navigator.userAgent.match(/BlackBerry/i); }, iOS: function () { return navigator.userAgent.match(/iPhone|iPad|iPod/i); }, Opera: function () { return navigator.userAgent.match(/Opera Mini/i); }, Windows: function () { return navigator.userAgent.match(/IEMobile/i); }, any: function () { return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows()); } };
-function isIE() {
-	ua = navigator.userAgent;
-	var is_ie = ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
-	return is_ie;
-}
-if (isIE()) {
-	document.querySelector('body').classList.add('ie');
-}
-if (isMobile.any()) {
-	document.querySelector('body').classList.add('_touch');
-}
-function testWebP(callback) {
-	var webP = new Image();
-	webP.onload = webP.onerror = function () {
-		callback(webP.height == 2);
-	};
-	webP.src = "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA";
-}
-testWebP(function (support) {
-	if (support == true) {
-		document.querySelector('body').classList.add('_webp');
-	} else {
-		document.querySelector('body').classList.add('_no-webp');
+
+
+//==============Tabs==================================================================================================================
+let tabs = document.querySelectorAll("._tabs");
+for (let index = 0; index < tabs.length; index++) {
+	let tab = tabs[index];
+	let tabs_items = tab.querySelectorAll("._tabs-item");
+	let tabs_blocks = tab.querySelectorAll("._tabs-block");
+	for (let index = 0; index < tabs_items.length; index++) {
+		let tabs_item = tabs_items[index];
+		tabs_item.addEventListener("click", function (e) {
+			for (let index = 0; index < tabs_items.length; index++) {
+				let tabs_item = tabs_items[index];
+				tabs_item.classList.remove('_active');
+				tabs_blocks[index].classList.remove('_active');
+			}
+			tabs_item.classList.add('_active');
+			tabs_blocks[index].classList.add('_active');
+			e.preventDefault();
+		});
 	}
+}
+"use strict"
+
+document.addEventListener('DOMContentLoaded', function () {
+	const form = document.getElementById('form');
+	form.addEventListener('submit', formSend);
+
+	async function formSend(e) {
+		e.preventDefault();
+
+		let error = formValidate(form);
+
+		let formData = new FormData(form);
+		formData.append('image', formImage.files[0]);
+
+		if (error === 0) {
+			form.classList.add('_sending');
+			let response = await fetch('sendmail.php', {
+				method: 'POST',
+				body: formData
+			});
+			if (response.ok) {
+				let result = await response.json();
+				alert(result.message);
+				formPreview.innerHTML = '';
+				form.reset();
+				form.classList.remove('_sending');
+			} else {
+				alert("Ошибка");
+				form.classList.remove('_sending');
+			}
+		} else {
+			alert('Заполните обязательные поля');
+		}
+
+	}
+
+
+	function formValidate(form) {
+		let error = 0;
+		let formReq = document.querySelectorAll('._req');
+
+		for (let index = 0; index < formReq.length; index++) {
+			const input = formReq[index];
+			formRemoveError(input);
+
+			if (input.classList.contains('_email')) {
+				if (emailTest(input)) {
+					formAddError(input);
+					error++;
+				}
+			} else if (input.getAttribute("type") === "checkbox" && input.checked === false) {
+				formAddError(input);
+				error++;
+			} else {
+				if (input.value === '') {
+					formAddError(input);
+					error++;
+				}
+			}
+		}
+		return error;
+	}
+	function formAddError(input) {
+		input.parentElement.classList.add('_error');
+		input.classList.add('_error');
+	}
+	function formRemoveError(input) {
+		input.parentElement.classList.remove('_error');
+		input.classList.remove('_error');
+	}
+	//Функция теста email
+	function emailTest(input) {
+		return !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(input.value);
+	}
+
+	//Получаем инпут file в переменную
+	const formImage = document.getElementById('formImage');
+	//Получаем див для превью в переменную
+	const formPreview = document.getElementById('formPreview');
+
+	//Слушаем изменения в инпуте file
+	formImage.addEventListener('change', () => {
+		uploadFile(formImage.files[0]);
+	});
+
+	function uploadFile(file) {
+		// провераяем тип файла
+		if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+			alert('Разрешены только изображения.');
+			formImage.value = '';
+			return;
+		}
+		// проверим размер файла (<2 Мб)
+		if (file.size > 2 * 1024 * 1024) {
+			alert('Файл должен быть менее 2 МБ.');
+			return;
+		}
+
+		var reader = new FileReader();
+		reader.onload = function (e) {
+			formPreview.innerHTML = `<img src="${e.target.result}" alt="Фото">`;
+		};
+		reader.onerror = function (e) {
+			alert('Ошибка');
+		};
+		reader.readAsDataURL(file);
+	}
+});
+//BildSlider
+let sliders = document.querySelectorAll("._swiper");
+if (sliders) {
+  for (let index = 0; index < sliders.length; index++) {
+    let slider = sliders[index];
+    if (!slider.classList.contains("swiper-bild")) {
+      let slider_items = slider.children;
+      if (slider_items) {
+        for (let index = 0; index < slider_items.length; index++) {
+          let el = slider_items[index];
+          el.classList.add("swiper-slide");
+        }
+      }
+      let slider_content = slider.innerHTML;
+      let slider_wrapper = document.createElement("div");
+      slider_wrapper.classList.add("swiper-wrapper");
+      slider_wrapper.innerHTML = slider_content;
+      slider.innerHTML = "";
+      slider.appendChild(slider_wrapper);
+      slider.classList.add("swiper-bild");
+
+      if (slider.classList.contains("_swiper_scroll")) {
+        let sliderScroll = document.createElement("div");
+        sliderScroll.classList.add("swiper-scrollbar");
+        slider.appendChild(sliderScroll);
+      }
+    }
+    if (slider.classList.contains("_gallery")) {
+      //slider.data('lightGallery').destroy(true);
+    }
+  }
+  sliders_bild_callback();
+}
+
+function sliders_bild_callback(params) {}
+
+let sliderScrollItems = document.querySelectorAll("._swiper_scroll");
+if (sliderScrollItems.length > 0) {
+  for (let index = 0; index < sliderScrollItems.length; index++) {
+    const sliderScrollItem = sliderScrollItems[index];
+    const sliderScrollBar = sliderScrollItem.querySelector(".swiper-scrollbar");
+    const sliderScroll = new Swiper(sliderScrollItem, {
+      direction: "vertical",
+      slidesPerView: "auto",
+      freeMode: true,
+      scrollbar: {
+        el: sliderScrollBar,
+        draggable: true,
+        snapOnRelease: false,
+      },
+      mousewheel: {
+        releaseOnEdges: true,
+      },
+    });
+    sliderScroll.scrollbar.updateSize();
+  }
+}
+
+function sliders_bild_callback(params) {}
+
+let slider_about = new Swiper(".featured__swiper", {
+  /*
+	effect: 'fade',
+	*/
+
+	// autoplay: {
+	// 	delay: 3000,
+	// 	disableOnInteraction: false,
+	// },
+  observer: true,
+  observeParents: true,
+  slidesPerView: 1,
+  spaceBetween: 0,
+  autoHeight: true,
+  speed: 800,
+  //touchRatio: 0,
+  //simulateTouch: false,
+  loop: true,
+  //preloadImages: false,
+  //lazy: true,
+  // Dotts
+  //pagination: {
+  //	el: '.slider-quality__pagging',
+  //	clickable: true,
+  //},
+  // Arrows
+  navigation: {
+    nextEl: ".featured__next",
+    prevEl: ".featured__prev",
+  },
+  /*
+	breakpoints: {
+		320: {
+			slidesPerView: 1,
+			spaceBetween: 0,
+			autoHeight: true,
+		},
+		768: {
+			slidesPerView: 2,
+			spaceBetween: 20,
+		},
+		992: {
+			slidesPerView: 3,
+			spaceBetween: 20,
+		},
+		1268: {
+			slidesPerView: 4,
+			spaceBetween: 30,
+		},
+	},
+	*/
+  // on: {
+  //   lazyImageReady: function () {
+  //     ibg();
+  //   },
+  // },
+  // And if we need scrollbar
+  //scrollbar: {
+  //	el: '.swiper-scrollbar',
+  //},
 });
 
 
-function email_test(input) {
-	return !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(input.value);
-}
+
+let slider_test = new Swiper(".testimonial", {
+  /*
+	effect: 'fade',
+	*/
+
+	// autoplay: {
+	// 	delay: 3000,
+	// 	disableOnInteraction: false,
+	// },
+  observer: true,
+  observeParents: true,
+  slidesPerView: 1,
+  spaceBetween: 0,
+  autoHeight: true,
+  speed: 800,
+  //touchRatio: 0,
+  //simulateTouch: false,
+  loop: true,
+  //preloadImages: false,
+  //lazy: true,
+  // Dotts
+  //pagination: {
+  //	el: '.slider-quality__pagging',
+  //	clickable: true,
+  //},
+  // Arrows
+  navigation: {
+    nextEl: ".testimonial__next",
+    prevEl: ".testimonial__prev",
+  },
+  /*
+	breakpoints: {
+		320: {
+			slidesPerView: 1,
+			spaceBetween: 0,
+			autoHeight: true,
+		},
+		768: {
+			slidesPerView: 2,
+			spaceBetween: 20,
+		},
+		992: {
+			slidesPerView: 3,
+			spaceBetween: 20,
+		},
+		1268: {
+			slidesPerView: 4,
+			spaceBetween: 30,
+		},
+	},
+	*/
+  // on: {
+  //   lazyImageReady: function () {
+  //     ibg();
+  //   },
+  // },
+  // And if we need scrollbar
+  //scrollbar: {
+  //	el: '.swiper-scrollbar',
+  //},
+});
+
 // Dynamic Adapt v.1
 // HTML data-da="where(uniq class name),when(breakpoint),position(digi)"
 // e.x. data-da=".item,992,2"
@@ -285,3 +570,69 @@ for (i = 0; i < menuLink.length; i++) {
 	});
 }
 
+// =========================================================
+const swiper = new Swiper('.swiper-container', {
+  // Optional parameters
+  direction: 'vertical',
+  loop: true,
+
+  // If we need pagination
+  pagination: {
+    el: '.swiper-pagination',
+  },
+
+  // Navigation arrows
+  navigation: {
+    nextEl: '.swiper-button-next',
+    prevEl: '.swiper-button-prev',
+  },
+
+  // And if we need scrollbar
+  scrollbar: {
+    el: '.swiper-scrollbar',
+  },
+});
+
+
+
+// Tabs
+// ================================================================
+
+let tabButton = document.getElementsByClassName("gizmodo__nav-item");
+for (let i = 0; i < tabButton.length; i++) {
+  tabButton[i].addEventListener("click", function () {
+    let current = document.getElementsByClassName("_active");
+    current[0].className = current[0].className.replace(" _active", "");
+    this.className += " _active";
+  });
+}
+
+// ==============================ibg=============================================================================================
+
+function ibg() {
+	if (isIE()) {
+		let ibg = document.querySelectorAll("._ibg");
+		for (var i = 0; i < ibg.length; i++) {
+			if (ibg[i].querySelector('img') && ibg[i].querySelector('img').getAttribute('src') != null) {
+				ibg[i].style.backgroundImage = 'url(' + ibg[i].querySelector('img').getAttribute('src') + ')';
+			}
+		}
+	}
+}
+ibg();
+
+if (document.querySelector('.wrapper')) {
+	document.querySelector('.wrapper').classList.add('_loaded');
+}
+
+// function ibg() {
+//   let ibg = document.querySelectorAll(".ibg");
+//   for (var i = 0; i < ibg.length; i++) {
+//     if (ibg[i].querySelector("img")) {
+//       ibg[i].style.backgroundImage =
+//         "url(" + ibg[i].querySelector("img").getAttribute("src") + ")";
+//     }
+//   }
+// }
+
+// ibg();

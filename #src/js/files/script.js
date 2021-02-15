@@ -77,3 +77,39 @@ for (i = 0; i < menuLink.length; i++) {
 	});
 }
 
+// =========================================================
+const swiper = new Swiper('.swiper-container', {
+  // Optional parameters
+  direction: 'vertical',
+  loop: true,
+
+  // If we need pagination
+  pagination: {
+    el: '.swiper-pagination',
+  },
+
+  // Navigation arrows
+  navigation: {
+    nextEl: '.swiper-button-next',
+    prevEl: '.swiper-button-prev',
+  },
+
+  // And if we need scrollbar
+  scrollbar: {
+    el: '.swiper-scrollbar',
+  },
+});
+
+
+
+// Tabs
+// ================================================================
+
+let tabButton = document.getElementsByClassName("gizmodo__nav-item");
+for (let i = 0; i < tabButton.length; i++) {
+  tabButton[i].addEventListener("click", function () {
+    let current = document.getElementsByClassName("_active");
+    current[0].className = current[0].className.replace(" _active", "");
+    this.className += " _active";
+  });
+}
